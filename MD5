@@ -1,7 +1,7 @@
-ce745518fbda2a920114197664fbb5a6 *DESCRIPTION
+2d0d93c58d625add70de163bca0ae611 *DESCRIPTION
 4e7b0a1c39500462a8ea39290f01d6b3 *LICENSE
 0687ddd970f6e5f22d16a68ed5cbaf9f *NAMESPACE
-8d35affe3955f5269279e74c2da85ba9 *NEWS.md
+74a89d4fabe92af1776910d7bebf32d9 *NEWS.md
 2343cb493d5a9850ff196c27224f66d4 *R/adjust_emc.R
 d780dd2ab8647eb14365d27360e242ef *R/adjust_emc_sel.R
 951da906e00829ab8817fbe0ca2eb3f2 *R/adjust_multinom_uc_emc.R
@@ -33,7 +33,8 @@ d278973d26da1996363cf87a10445c96 *R/df_uc_sel.R
 1dd036714d1f2231da8d656b4ba1e8de *R/df_uc_sel_source.R
 997ac8bc79c22339fd27746d885dfdc8 *R/df_uc_source.R
 19dbfdb7fcd666f163396c94fbb79658 *R/evans.R
-51ae2e3a240adefc99bf9c1a5dc032ea *README.md
+003d9029246cbdd226da43f2da4db477 *README.md
+d39a414b61a3bab8fe8a64722c99b39e *build/vignette.rds
 b5a80f87b5313fcef6523125a6e1be80 *data/df_emc.rda
 d659d27ef44081b3e80e9dce3d91c530 *data/df_emc_sel.rda
 194f0bb67db6b99b6439d3ddfbfe6468 *data/df_emc_sel_source.rda
@@ -53,8 +54,9 @@ e61dfd036b411888ed62ef1c85c2692b *data/df_uc_sel.rda
 d515b9bd214033b40b56ed719a97535c *data/df_uc_sel_source.rda
 36114f1ae27d0629b35b319b7c380b0a *data/df_uc_source.rda
 4e1debc00c0042b0b5d7c5bd2549b823 *data/evans.rda
-b77646364e860d1607712bd9921a6c6e *inst/DAGs/README
-072f4c7ec9ae9e98b83442068031dcad *inst/DAGs/uc_mc_sel_DAG.png
+3c1826725852b1f55e83200dad798880 *inst/doc/multibias_examples.R
+f098ac6fd3a2f6a1986b460efe9e60a9 *inst/doc/multibias_examples.Rmd
+fd287041d70d7b10e976b0fffe8be668 *inst/doc/multibias_examples.html
 16238ce0af4120ef11ba4a4c04944233 *man/adjust_emc.Rd
 c908033bc78d83a3ddcceb801b7da4fb *man/adjust_emc_sel.Rd
 1c54f1938ab846dd1fba2a078724166f *man/adjust_multinom_uc_emc.Rd
@@ -99,3 +101,5 @@ b238ac4e7aaed3f9b18c217d10ac8201 *tests/testthat/test-adjust_uc.R
 9dd4e7690b7350db1af1ba7cd2e1936a *tests/testthat/test-adjust_uc_emc_sel.R
 e7d90127d9a65b1c69ff783d0b98ae3e *tests/testthat/test-adjust_uc_omc.R
 6fecd05e11eb4e3c50806e1af53de1cd *tests/testthat/test-adjust_uc_sel.R
+072f4c7ec9ae9e98b83442068031dcad *vignettes/img/uc_emc_sel_DAG.png
+f098ac6fd3a2f6a1986b460efe9e60a9 *vignettes/multibias_examples.Rmd
