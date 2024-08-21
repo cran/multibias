@@ -374,20 +374,19 @@ as a known confounder.</p>
 <span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;95% CI: (&quot;</span>, or_ci_low, <span class="st">&quot;, &quot;</span>, or_ci_high, <span class="st">&quot;)&quot;</span>))</span>
 <span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; [1] &quot;95% CI: (1.12, 3.55)&quot;</span></span></code></pre></div>
 <p>This estimate, despite not adjusting for age, appears around what we
-would expect. In the IJE article <a href="https://academic.oup.com/ije/article/44/3/735/633393">The
-association between tobacco smoking and coronary heart disease</a> the
-author notes: “Cigarette smokers have about twice as much coronary heart
-disease as non-smokers, whether measured by deaths, prevalence, or the
-incidence of new events.” However, we also know from studies like <a href="https://www.bmj.com/content/360/bmj.j5855#:~:text=The%20pooled%20relative%20risks%20for%20coronary%20heart%20disease%20associated%20with,all%20studies%20in%20table%201.">this
-BMJ meta-analysis</a> that the effect estimate can vary greatly
-depending on the degree of cigarette consumption. We also observe a wide
-confidence interval due to the small sample size of the data. In
-real-world practice we would want to obtain better data that includes
-more observations, participant estimates of cigarettes smoked/day, and
-other important confounders including sex and race/ethnicity. In
-Epidemiology it is very rarely the case that we have the “perfect” data
-with everything we would like! We’ll proceed with the analysis knowing
-the limitations of the data.</p>
+would expect. In the IJE article <a href="https://doi.org/10.1093/ije/dyv124">The association between
+tobacco smoking and coronary heart disease</a> the author notes:
+“Cigarette smokers have about twice as much coronary heart disease as
+non-smokers, whether measured by deaths, prevalence, or the incidence of
+new events.” However, we also know from studies like <a href="https://doi.org/10.1136/bmj.j5855">this BMJ meta-analysis</a> that
+the effect estimate can vary greatly depending on the degree of
+cigarette consumption. We also observe a wide confidence interval due to
+the small sample size of the data. In real-world practice we would want
+to obtain better data that includes more observations, participant
+estimates of cigarettes smoked/day, and other important confounders
+including sex and race/ethnicity. In Epidemiology it is very rarely the
+case that we have the “perfect” data with everything we would like!
+We’ll proceed with the analysis knowing the limitations of the data.</p>
 <p>Can we anticipate whether this biased odds ratio (without
 age-adjustment) is biased toward or away from the null? Let’s consider
 the association of the uncontrolled confounder with the exposure and
