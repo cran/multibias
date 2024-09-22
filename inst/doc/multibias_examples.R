@@ -56,25 +56,25 @@ print(paste0("95% CI: (", or_ci_low, ", ", or_ci_high, ")"))
 knitr::include_graphics("img/uc_emc_sel_DAG.png")
 
 ## ----eval = TRUE--------------------------------------------------------------
-head(df_uc_emc_sel)
+head(df_uc_em_sel)
 
 ## ----eval = TRUE--------------------------------------------------------------
 biased_model <- glm(Y ~ Xstar + C1 + C2 + C3, ,
                     family = binomial(link = "logit"),
-                    data = df_uc_emc_sel)
+                    data = df_uc_em_sel)
 biased_or <- round(exp(coef(biased_model)[2]), 2)
 print(paste0("Biased Odds Ratio: ", biased_or))
 
 ## ----eval = TRUE--------------------------------------------------------------
 u_model <- glm(U ~ X + Y,
                family = binomial(link = "logit"),
-               data = df_uc_emc_sel_source)
+               data = df_uc_em_sel_source)
 x_model <- glm(X ~ Xstar + Y + C1 + C2 + C3,
                family = binomial(link = "logit"),
-               data = df_uc_emc_sel_source)
+               data = df_uc_em_sel_source)
 s_model <- glm(S ~ Xstar + Y + C1 + C2 + C3,
                family = binomial(link = "logit"),
-               data = df_uc_emc_sel_source)
+               data = df_uc_em_sel_source)
 
 ## ----eval = FALSE-------------------------------------------------------------
 #  library(doParallel)
@@ -91,11 +91,11 @@ s_model <- glm(S ~ Xstar + Y + C1 + C2 + C3,
 #  or <- foreach(i = 1:nreps, .combine = c,
 #                .packages = c("dplyr", "multibias")) %dopar% {
 #  
-#    df_sample <- df_uc_emc_sel[sample(seq_len(nrow(df_uc_emc_sel)),
-#                                      nrow(df_uc_emc_sel),
-#                                      replace = TRUE), ]
+#    df_sample <- df_uc_em_sel[sample(seq_len(nrow(df_uc_em_sel)),
+#                                     nrow(df_uc_em_sel),
+#                                     replace = TRUE), ]
 #  
-#    est[i] <- adjust_uc_emc_sel(
+#    est[i] <- adjust_uc_em_sel(
 #      df_sample,
 #      exposure = "Xstar",
 #      outcome = "Y",
