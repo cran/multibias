@@ -344,10 +344,12 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <p>Multibias makes it easy to simultaneously adjust for multiple biases
 in causal inference research. This document walks you through the key
 steps to performing the analysis.</p>
-<div id="identify-the-biases-in-your-data" class="section level2">
-<h2>1. Identify the biases in your data</h2>
-<p>All epidemiological biases can be generalized into four main
-groups:</p>
+<div id="create-data_observed" class="section level2">
+<h2>1. Create data_observed</h2>
+<p>Represent your observed data as a <code>data_observed</code> object.
+Here you include the dataframe, specify the key variables in the data,
+and identify the bias impacting the data. All epidemiological biases can
+be generalized into four main groups:</p>
 <ul>
 <li>Uncontrolled confounding (<strong>uc</strong>)</li>
 <li>Exposure misclassificaiton (<strong>em</strong>)</li>
@@ -355,10 +357,7 @@ groups:</p>
 <li>Selection bias (<strong>sel</strong>)</li>
 </ul>
 <p>Multibias is capable of handling bias adjustment for most of the
-combinations of the above four biases. Choose the <code>adjust()</code>
-function corresponding to the biases of interest using the appropriate
-prefix. For example, <code>adjust_uc_sel()</code> adjusts for
-uncontrolled confounding and selection bias.</p>
+combinations of the above four biases.</p>
 <p>For purposes of demonstration, multibias includes datasets with
 different bias combinations. For a given bias or biases, it includes the
 biased data (e.g., <code>df_uc_sel</code>: missing a confounder and not
@@ -371,22 +370,16 @@ missing confounder and subjects who were not selected).</p>
 <li><code>Y</code> = binary outcome</li>
 <li><code>C1-C3</code> = binary confounders</li>
 </ul>
-</div>
-<div id="create-data_observed" class="section level2">
-<h2>2. Create data_observed</h2>
-<p>Each <code>adjust()</code> function in multibias requires inputting
-your observed, biased data as a <code>data_observed</code> object. Here
-you specify the dataframe and identify the key variables in the
-data.</p>
 <div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a>df_observed <span class="ot">&lt;-</span> <span class="fu">data_observed</span>(</span>
 <span id="cb1-2"><a href="#cb1-2" tabindex="-1"></a>  df_uc_sel,</span>
-<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">exposure =</span> <span class="st">&quot;X&quot;</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
-<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
-<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-3"><a href="#cb1-3" tabindex="-1"></a>  <span class="at">bias =</span> <span class="fu">c</span>(<span class="st">&quot;uc&quot;</span>, <span class="st">&quot;sel&quot;</span>),</span>
+<span id="cb1-4"><a href="#cb1-4" tabindex="-1"></a>  <span class="at">exposure =</span> <span class="st">&quot;X&quot;</span>,</span>
+<span id="cb1-5"><a href="#cb1-5" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
+<span id="cb1-7"><a href="#cb1-7" tabindex="-1"></a>)</span></code></pre></div>
 </div>
-<div id="obtain-source-for-bias-adjustment" class="section level2">
-<h2>3. Obtain source for bias adjustment</h2>
+<div id="create-source-for-bias-adjustment" class="section level2">
+<h2>2. Create source for bias adjustment</h2>
 <p>Next, you need to have some information that can be used to quantify
 the assumed bias or biases. There are two options here.</p>
 <div id="option-1-bias-parameters" class="section level3">
@@ -398,8 +391,12 @@ can be derived using the methods outlined in the article <a href="https://doi.or
 have bias parameters to predict the missing binary confounder
 <code>U</code> (as the vector <code>u_coefs</code>) and study selection
 indicator <code>S</code> (as the vector <code>s_coefs</code>).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>u_coefs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.19</span>, <span class="fl">0.61</span>, <span class="fl">0.72</span>, <span class="sc">-</span><span class="fl">0.09</span>, <span class="fl">0.10</span>, <span class="sc">-</span><span class="fl">0.15</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>s_coefs <span class="ot">&lt;-</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.01</span>, <span class="fl">0.92</span>, <span class="fl">0.94</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>bp <span class="ot">&lt;-</span> <span class="fu">bias_params</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">coef_list =</span> <span class="fu">list</span>(</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    <span class="at">u =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.19</span>, <span class="fl">0.61</span>, <span class="fl">0.72</span>, <span class="sc">-</span><span class="fl">0.09</span>, <span class="fl">0.10</span>, <span class="sc">-</span><span class="fl">0.15</span>),</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>    <span class="at">s =</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.01</span>, <span class="fl">0.92</span>, <span class="fl">0.94</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  )</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>)</span></code></pre></div>
 </div>
 <div id="option-2-validation-data" class="section level3">
 <h3>Option 2: Validation data</h3>
@@ -419,22 +416,21 @@ for whether a given individual was selected into the study.</p>
 </div>
 </div>
 <div id="run-the-bias-adjustment" class="section level2">
-<h2>4. Run the bias adjustment</h2>
+<h2>3. Run the bias adjustment</h2>
 <p>Finally, we can run the multi-bias adjustment!</p>
 <div id="single-run" class="section level3">
 <h3>Single run</h3>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">adjust_uc_sel</span>(</span>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">multibias_adjust</span>(</span>
 <span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">data_observed =</span> df_observed,</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">u_model_coefs =</span> u_coefs,</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">s_model_coefs =</span> s_coefs</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>)</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; $estimate</span></span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; [1] 2.001141</span></span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; $ci</span></span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="co">#&gt; [1] 1.948436 2.055271</span></span></code></pre></div>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">bias_params =</span> bp</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a><span class="co">#&gt; $estimate</span></span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a><span class="co">#&gt; [1] 2.001141</span></span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a><span class="co">#&gt; $ci</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a><span class="co">#&gt; [1] 1.948436 2.055271</span></span></code></pre></div>
 <p>or</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">adjust_uc_sel</span>(</span>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">multibias_adjust</span>(</span>
 <span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">data_observed =</span> df_observed,</span>
 <span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">data_validation =</span> df_validation</span>
 <span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>)</span>
@@ -464,25 +460,26 @@ Computational performance can be improved via parallelization.</p>
 <span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  df_bootstrap <span class="ot">&lt;-</span> df_uc_sel[<span class="fu">sample</span>(<span class="fu">seq_len</span>(n), n, <span class="at">replace =</span> <span class="cn">TRUE</span>), ]</span>
 <span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>  df_observed <span class="ot">&lt;-</span> <span class="fu">data_observed</span>(</span>
 <span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>    df_bootstrap,</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="at">exposure =</span> <span class="st">&quot;X&quot;</span>,</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>    <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>  )</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">adjust_uc_sel</span>(</span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>    df_observed,</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    df_validation</span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>  )</span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  est[i] <span class="ot">&lt;-</span> results<span class="sc">$</span>estimate</span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>}</span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a></span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a><span class="co"># odds ratio estimate</span></span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">median</span>(est), <span class="dv">2</span>)</span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="co">#&gt; [1] 1.99</span></span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a></span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a><span class="co"># confidence interval</span></span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">quantile</span>(est, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>)), <span class="dv">2</span>)</span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="co">#&gt;  2.5% 97.5% </span></span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt;  1.94  2.04</span></span></code></pre></div>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="at">bias =</span> <span class="fu">c</span>(<span class="st">&quot;uc&quot;</span>, <span class="st">&quot;sel&quot;</span>),</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>    <span class="at">exposure =</span> <span class="st">&quot;X&quot;</span>,</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>    <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>    <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>  )</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">multibias_adjust</span>(</span>
+<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    df_observed,</span>
+<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>    df_validation</span>
+<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>  )</span>
+<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>  est[i] <span class="ot">&lt;-</span> results<span class="sc">$</span>estimate</span>
+<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>}</span>
+<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a></span>
+<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a><span class="co"># odds ratio estimate</span></span>
+<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">median</span>(est), <span class="dv">2</span>)</span>
+<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a><span class="co">#&gt; [1] 1.99</span></span>
+<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a></span>
+<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a><span class="co"># confidence interval</span></span>
+<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">quantile</span>(est, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>)), <span class="dv">2</span>)</span>
+<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a><span class="co">#&gt;  2.5% 97.5% </span></span>
+<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a><span class="co">#&gt;  1.94  2.04</span></span></code></pre></div>
 <p>When adjusting via bias parameters, the user can alternatively
 provide each bias parameter value as a probability distribution. The
 resulting confidence interval from bootstrapping can then quantify

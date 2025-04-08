@@ -8,14 +8,19 @@ library(multibias)
 ## -----------------------------------------------------------------------------
 df_observed <- data_observed(
   df_uc_sel,
+  bias = c("uc", "sel"),
   exposure = "X",
   outcome = "Y",
   confounders = c("C1", "C2", "C3")
 )
 
 ## -----------------------------------------------------------------------------
-u_coefs <- c(-0.19, 0.61, 0.72, -0.09, 0.10, -0.15)
-s_coefs <- c(-0.01, 0.92, 0.94)
+bp <- bias_params(
+  coef_list = list(
+    u = c(-0.19, 0.61, 0.72, -0.09, 0.10, -0.15),
+    s = c(-0.01, 0.92, 0.94)
+  )
+)
 
 ## -----------------------------------------------------------------------------
 df_validation <- data_validation(
@@ -27,14 +32,13 @@ df_validation <- data_validation(
 )
 
 ## -----------------------------------------------------------------------------
-adjust_uc_sel(
+multibias_adjust(
   data_observed = df_observed,
-  u_model_coefs = u_coefs,
-  s_model_coefs = s_coefs
+  bias_params = bp
 )
 
 ## -----------------------------------------------------------------------------
-adjust_uc_sel(
+multibias_adjust(
   data_observed = df_observed,
   data_validation = df_validation
 )
@@ -48,11 +52,12 @@ for (i in 1:nreps) {
   df_bootstrap <- df_uc_sel[sample(seq_len(n), n, replace = TRUE), ]
   df_observed <- data_observed(
     df_bootstrap,
+    bias = c("uc", "sel"),
     exposure = "X",
     outcome = "Y",
     confounders = c("C1", "C2", "C3")
   )
-  results <- adjust_uc_sel(
+  results <- multibias_adjust(
     df_observed,
     df_validation
   )

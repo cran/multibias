@@ -8,6 +8,7 @@ knitr::opts_chunk$set(
 library(multibias)
 
 ## ----eval = TRUE--------------------------------------------------------------
+evans <- read.csv("evans.csv")
 head(evans)
 
 ## ----eval = TRUE--------------------------------------------------------------
@@ -36,18 +37,21 @@ u_x <- log(0.5)
 u_y <- log(2.5)
 u_c <- log(2)
 
+u_coefs <- list(u = c(u_0, u_x, u_y, u_c))
+
 ## ----eval = TRUE--------------------------------------------------------------
 df_obs <- data_observed(
   data = evans,
+  bias = "uc",
   exposure = "SMK",
   outcome = "CHD",
   confounders = "HPT"
 )
 
 set.seed(1234)
-adjust_uc(
+multibias_adjust(
   df_obs,
-  u_model_coefs = c(u_0, u_x, u_y, u_c)
+  bias_params = bias_params(coef_list = u_coefs)
 )
 
 ## ----eval = TRUE--------------------------------------------------------------

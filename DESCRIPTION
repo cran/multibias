@@ -1,7 +1,7 @@
 Package: multibias
 Type: Package
 Title: Simultaneous Multi-Bias Adjustment
-Version: 1.6.3
+Version: 1.7
 Authors@R: person("Paul", "Brendel", email = "pcbrendel@gmail.com",
     role = c("aut", "cre", "cph"))
 Maintainer: Paul Brendel <pcbrendel@gmail.com>
@@ -29,7 +29,7 @@ BugReports: https://github.com/pcbrendel/multibias/issues
 Config/testthat/edition: 3
 VignetteBuilder: knitr
 NeedsCompilation: no
-Packaged: 2025-02-23 21:26:35 UTC; pbrendel
+Packaged: 2025-04-08 04:49:15 UTC; pbrendel
 Author: Paul Brendel [aut, cre, cph]
 Repository: CRAN
-Date/Publication: 2025-02-23 21:50:02 UTC
+Date/Publication: 2025-04-08 05:20:02 UTC

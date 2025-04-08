@@ -22,28 +22,32 @@ nhanes_filtered <- nhanes |>
   filter(eligstat == 1) |>
   filter(alcohol_12mo > 0)
 
-## ----message = FALSE----------------------------------------------------------
-nhanes_filtered |>
+## -----------------------------------------------------------------------------
+exposure_outcome_table <- nhanes_filtered |>
   group_by(alcohol_extreme, mortstat) |>
   summarize(count = n()) |>
   ungroup() |>
   mutate(proportion = count / sum(count))
 
-## ----message = FALSE----------------------------------------------------------
-nhanes_filtered |>
+# Distribution of Exposure and Outcome:
+print(exposure_outcome_table)
+
+demographic_table <- nhanes_filtered |>
   group_by(alcohol_extreme) |>
   summarize(
+    n = n(),
     age_mean = mean(age),
+    age_sd = sd(age),
     gender_prop = mean(gender_female)
+  ) |>
+  mutate(
+    alcohol_extreme = if_else(
+      alcohol_extreme == 1, "Extreme", "Non-extreme"
+    )
   )
 
-## ----message = FALSE----------------------------------------------------------
-nhanes_filtered |>
-  group_by(mortstat) |>
-  summarize(
-    age_mean = mean(age),
-    gender_prop = mean(gender_female)
-  )
+# Demographic Characteristics by Exposure Status:
+print(demographic_table)
 
 ## -----------------------------------------------------------------------------
 base_mod <- glm(
@@ -52,20 +56,27 @@ base_mod <- glm(
   family = binomial(link = "logit")
 )
 
-exp(coef(base_mod))
-exp(confint(base_mod))
+base_results <- data.frame(
+  term = c("Extreme Alcohol Use", "Female Gender", "Age"),
+  estimate = round(exp(coef(base_mod)), 2)[-1],
+  ci_lower = round(exp(confint(base_mod)), 2)[-1, 1],
+  ci_upper = round(exp(confint(base_mod)), 2)[-1, 2]
+)
+
+# Base Model Results: Odds Ratios and 95% Confidence Intervals
+print(base_results)
 
 ## -----------------------------------------------------------------------------
-df_obs <- data_observed(
+# Create observed data object with uncontrolled confounding bias
+df_obs1 <- data_observed(
   data = nhanes_filtered,
+  bias = "uc",
   exposure = "alcohol_extreme",
   outcome = "mortstat",
   confounders = c("age", "gender_female")
 )
 
-print(df_obs)
-
-## -----------------------------------------------------------------------------
+# Create validation data with smoking information
 df_temp1 <- nhanes_filtered |>
   filter(!is.na(smoked_100cigs))
 
@@ -76,21 +87,37 @@ df_val1 <- data_validation(
   confounders = c("age", "gender_female", "smoked_100cigs")
 )
 
-## -----------------------------------------------------------------------------
+# Perform bias adjustment
 set.seed(1234)
-adjust_uc(df_obs, df_val1)
+uc_adjusted <- multibias_adjust(df_obs1, df_val1)
+
+# Uncontrolled Confounding Adjusted Results:
+print(uc_adjusted)
 
 ## -----------------------------------------------------------------------------
+# Create observed data object with both biases
+df_obs2 <- data_observed(
+  data = nhanes_filtered,
+  bias = c("em", "uc"),
+  exposure = "alcohol_extreme",
+  outcome = "mortstat",
+  confounders = c("age", "gender_female")
+)
+
+# Create validation data with adjusted alcohol consumption
 df_temp2 <- nhanes_filtered |>
   filter(!is.na(smoked_100cigs)) |>
-  mutate(alcohol_adj = if_else(
-    income == "$100,000 and Over" | education == "College graduate or above",
-    alcohol_day_total * 1.5,
-    alcohol_day_total
-  )) |>
+  mutate(
+    # Assume 50% higher consumption for high SES individuals
+    alcohol_adj = if_else(
+      income == "$100,000 and Over" | education == "College graduate or above",
+      alcohol_day_total * 1.5,
+      alcohol_day_total
+    )
+  ) |>
   mutate(alcohol_extreme_adj = case_when(
-    alcohol_adj > 14 * 2 & gender_female == 1 ~ 1,
-    alcohol_adj > 14 * 4 & gender_female == 0 ~ 1,
+    alcohol_adj > 14 * 1.5 & gender_female == 1 ~ 1,
+    alcohol_adj > 28 * 1.5 & gender_female == 0 ~ 1,
     TRUE ~ 0
   ))
 
@@ -102,28 +129,43 @@ df_val2 <- data_validation(
   misclassified_exposure = "alcohol_extreme"
 )
 
-## -----------------------------------------------------------------------------
+# Perform bias adjustment
 set.seed(1234)
-adjust_uc_em(df_obs, df_val2)
+uc_em_adjusted <- multibias_adjust(df_obs2, df_val2)
+
+# Exposure Misclassification & Confounding Adjusted Results:
+print(uc_em_adjusted)
 
 ## -----------------------------------------------------------------------------
+# Create observed data object with all three biases
+df_obs3 <- data_observed(
+  data = nhanes_filtered,
+  bias = c("em", "uc", "sel"),
+  exposure = "alcohol_extreme",
+  outcome = "mortstat",
+  confounders = c("age", "gender_female")
+)
+
+# Prepare data for selection bias adjustment
 df_temp3a <- nhanes_filtered |>
   filter(!is.na(smoked_100cigs)) |>
-  mutate(alcohol_adj = if_else(
-    income == "$100,000 and Over" | education == "College graduate or above",
-    alcohol_day_total * 1.5,
-    alcohol_day_total
-  )) |>
-  mutate(alcohol_extreme_adj = case_when(
-    alcohol_adj > 14 * 2 & gender_female == 1 ~ 1,
-    alcohol_adj > 14 * 4 & gender_female == 0 ~ 1,
-    TRUE ~ 0
-  )) |>
   mutate(
+    alcohol_adj = if_else(
+      income == "$100,000 and Over" | education == "College graduate or above",
+      alcohol_day_total * 1.5,
+      alcohol_day_total
+    ),
+    alcohol_extreme_adj = case_when(
+      alcohol_adj > 14 * 1.5 & gender_female == 1 ~ 1,
+      alcohol_adj > 28 * 1.5 & gender_female == 0 ~ 1,
+      TRUE ~ 0
+    ),
+    # Combine survey weights
     weight = if_else(weight_day2 == 0, weight_day1, weight_day2)
   )
 
-## -----------------------------------------------------------------------------
+# Create selection indicator based on sampling weights
+set.seed(1234)
 selected_sample <- sample(
   x = df_temp3a$seqn,
   size = nrow(df_temp3a),
@@ -139,18 +181,13 @@ for (id in selected_sample) {
   )
 }
 
-not_selected_sample <- df_temp3a$seqn[!(df_temp3a$seqn %in% selected_sample)]
-df_not_selected_sample <- df_temp3a[df_temp3a$seqn %in% not_selected_sample, ]
-
-## -----------------------------------------------------------------------------
-length(not_selected_sample) + length(unique(selected_sample)) == nrow(df_temp3a)
-
-## -----------------------------------------------------------------------------
 df_selected_sample$selection <- 1
+df_not_selected_sample <- df_temp3a[!(df_temp3a$seqn %in% selected_sample), ]
 df_not_selected_sample$selection <- 0
+
 df_temp3b <- rbind(df_selected_sample, df_not_selected_sample)
 
-## -----------------------------------------------------------------------------
+# Create validation data with selection information
 df_val3 <- data_validation(
   data = df_temp3b,
   true_exposure = "alcohol_extreme_adj",
@@ -160,7 +197,42 @@ df_val3 <- data_validation(
   selection = "selection"
 )
 
-## -----------------------------------------------------------------------------
+# Perform final bias adjustment
 set.seed(1234)
-adjust_uc_em_sel(df_obs, df_val3)
+final_adjusted <- multibias_adjust(df_obs3, df_val3)
+
+# Triple Bias Adjusted Results:
+print(final_adjusted)
+
+## -----------------------------------------------------------------------------
+# Create comparison table
+comparison_table <- data.frame(
+  Model = c(
+    "Base Model",
+    "Adjusted - Single Bias",
+    "Adjusted - Double Biases",
+    "Adjusted - Triple Biases"
+  ),
+  OR = c(
+    round(exp(coef(base_mod))["alcohol_extreme"], 2),
+    round(uc_adjusted$estimate, 2),
+    round(uc_em_adjusted$estimate, 2),
+    round(final_adjusted$estimate, 2)
+  ),
+  CI_lower = c(
+    round(exp(confint(base_mod))["alcohol_extreme", 1], 2),
+    round(uc_adjusted$ci[1], 2),
+    round(uc_em_adjusted$ci[1], 2),
+    round(final_adjusted$ci[1], 2)
+  ),
+  CI_upper = c(
+    round(exp(confint(base_mod))["alcohol_extreme", 2], 2),
+    round(uc_adjusted$ci[2], 2),
+    round(uc_em_adjusted$ci[2], 2),
+    round(final_adjusted$ci[2], 2)
+  )
+)
+
+# Comparison of Bias-Adjusted Estimates:
+print(comparison_table)
 
