@@ -379,14 +379,47 @@ package.</p>
 <p>In this data, the true, unbiased exposure-outcome odds ratio
 (OR<sub>YX</sub>) equals ~2. However, when we run a logistic regression
 of the outcome on the exposure and confounders, we do not observe an
-odds ratio of 2 due to the multiple bias sources.</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>biased_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(Y <span class="sc">~</span> Xstar <span class="sc">+</span> C1 <span class="sc">+</span> C2 <span class="sc">+</span> C3, ,</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                    <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>                    <span class="at">data =</span> df_uc_em_sel)</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>biased_or <span class="ot">&lt;-</span> <span class="fu">round</span>(<span class="fu">exp</span>(<span class="fu">coef</span>(biased_model)[<span class="dv">2</span>]), <span class="dv">2</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a><span class="fu">print</span>(<span class="fu">paste0</span>(<span class="st">&quot;Biased Odds Ratio: &quot;</span>, biased_or))</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a><span class="co">#&gt; [1] &quot;Biased Odds Ratio: 1.5&quot;</span></span></code></pre></div>
-<p>The function <code>adjust_uc_emc_sel()</code> can be used here to
+odds ratio of 2 due to the multiple bias sources. We create our
+<code>data_observed</code> object, specifying the three biases of
+interest, and observe the biased model results.</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>df_observed <span class="ot">&lt;-</span> <span class="fu">data_observed</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">data =</span> df_uc_em_sel,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">bias =</span> <span class="fu">c</span>(<span class="st">&quot;uc&quot;</span>, <span class="st">&quot;em&quot;</span>, <span class="st">&quot;sel&quot;</span>),</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">exposure =</span> <span class="st">&quot;Xstar&quot;</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>)</span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a></span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="fu">print</span>(df_observed)</span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="co">#&gt; Observed Data</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="co">#&gt; ---------------------------------</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="co">#&gt; The following biases are present: </span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a><span class="co">#&gt; Uncontrolled Confounding</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a><span class="co">#&gt; Exposure Misclassification</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a><span class="co">#&gt; Selection Bias </span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a><span class="co">#&gt; ---------------------------------</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a><span class="co">#&gt; Exposure: Xstar </span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a><span class="co">#&gt; Outcome: Y </span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a><span class="co">#&gt; Confounders: C1, C2, C3 </span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a><span class="co">#&gt; ---------------------------------</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a><span class="co">#&gt; Data head: </span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a><span class="co">#&gt;   Xstar Y C1 C2 C3</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a><span class="co">#&gt; 1     1 0  0  0  1</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a><span class="co">#&gt; 2     0 0  0  0  1</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a><span class="co">#&gt; 3     0 0  0  0  0</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a><span class="co">#&gt; 4     0 0  1  0  1</span></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="co">#&gt; 5     1 0  0  0  1</span></span>
+<span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a><span class="fu">summary</span>(df_observed)</span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="co">#&gt; Note: Estimates are exponentiated (odds ratios) for binary outcomes</span></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a><span class="co">#&gt; # A tibble: 5 × 7</span></span>
+<span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a><span class="co">#&gt;   term        estimate std.error statistic   p.value conf.low conf.high</span></span>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="co">#&gt;   &lt;chr&gt;          &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="co">#&gt; 1 (Intercept)    0.164    0.0224     -80.7 0            0.157     0.172</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="co">#&gt; 2 Xstar          1.50     0.0154      26.3 2.89e-152    1.45      1.55 </span></span>
+<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="co">#&gt; 3 C1             1.51     0.0155      26.4 1.69e-153    1.46      1.55 </span></span>
+<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="co">#&gt; 4 C2             0.425    0.0235     -36.4 1.02e-290    0.406     0.445</span></span>
+<span id="cb3-37"><a href="#cb3-37" tabindex="-1"></a><span class="co">#&gt; 5 C3             1.43     0.0211      17.1 2.49e- 65    1.38      1.49</span></span></code></pre></div>
+<p>The function <code>multibias_adjust()</code> can be used to
 “reconstruct” the unbiased data and return the exposure-outcome odds
 ratio that would be observed in the unbiased setting.</p>
 <p>Models for the missing variables (<em>U</em>, <em>X</em>, <em>S</em>)
@@ -401,102 +434,80 @@ corresponding bias models are:</p>
 </ul>
 <p>where j indicates the number of measured confounders.</p>
 <p>To perform the bias adjustment, it is necessary to obtain values of
-these bias parameters. Potential sources of these bias parameters
-include internal validation data, estimates in the literature, and
-expert opinion. For purposes of demonstrating the methodology, we will
-obtain the exact values of these bias parameters. This is possible
-because for purposes of validation we have access to the data of missing
-values that would otherwise be absent in real-world practice. This
-source data is available in <code>multibias</code> as
+these bias parameters. Potential sources of these bias parameters may
+include validation data, estimates in the literature, and expert
+opinion. For purposes of demonstrating the methodology, we will obtain
+the exact values of these bias parameters. This is possible because we
+have access to the data of missing values that would otherwise be absent
+in real-world practice. This source data is available in multibias as
 <code>df_uc_emc_sel_source</code>.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>u_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(U <span class="sc">~</span> X <span class="sc">+</span> Y,</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>               <span class="at">data =</span> df_uc_em_sel_source)</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>x_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(X <span class="sc">~</span> Xstar <span class="sc">+</span> Y <span class="sc">+</span> C1 <span class="sc">+</span> C2 <span class="sc">+</span> C3,</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>               <span class="at">data =</span> df_uc_em_sel_source)</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>s_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(S <span class="sc">~</span> Xstar <span class="sc">+</span> Y <span class="sc">+</span> C1 <span class="sc">+</span> C2 <span class="sc">+</span> C3,</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>               <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>               <span class="at">data =</span> df_uc_em_sel_source)</span></code></pre></div>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">data =</span> df_uc_em_sel_source</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>)</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>x_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(X <span class="sc">~</span> Xstar <span class="sc">+</span> Y <span class="sc">+</span> C1 <span class="sc">+</span> C2 <span class="sc">+</span> C3,</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">data =</span> df_uc_em_sel_source</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>)</span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>s_model <span class="ot">&lt;-</span> <span class="fu">glm</span>(S <span class="sc">~</span> Xstar <span class="sc">+</span> Y <span class="sc">+</span> C1 <span class="sc">+</span> C2 <span class="sc">+</span> C3,</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>  <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">&quot;logit&quot;</span>),</span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>  <span class="at">data =</span> df_uc_em_sel_source</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>)</span></code></pre></div>
 <p>In this example we’ll perform probabilistic bias analysis,
-representing each bias parameter as a single draw from a probability
-distribution. For this reason, we will run the analysis over 1,000
-iterations with bootstrap samples to obtain a valid confidence interval.
-To speed up the computation we will run the for loop in parallel using
-the <code>foreach()</code> function in the <code>doParallel</code>
-package. We create a cluster, make a seed for consistent results, and
-specify the desired number of bootstrap repitions.</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">library</span>(doParallel)</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a></span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>no_cores <span class="ot">&lt;-</span> <span class="fu">detectCores</span>() <span class="sc">-</span> <span class="dv">1</span></span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a><span class="fu">registerDoParallel</span>(<span class="at">cores =</span> no_cores)</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>cl <span class="ot">&lt;-</span> <span class="fu">makeCluster</span>(no_cores)</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a><span class="fu">set.seed</span>(<span class="dv">1234</span>)</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>nreps <span class="ot">&lt;-</span> <span class="dv">1000</span></span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>est <span class="ot">&lt;-</span> <span class="fu">vector</span>(<span class="at">length =</span> nreps)</span></code></pre></div>
-<p>Next we run the parallel for loop in which we apply the
-<code>adjust_uc_em_sel()</code> function to bootstrap samples of the
-<code>df_uc_em_sel</code> data. Within the function, we include the
-following arguments: 1. The <code>data_observed</code> object, which
-includes the dataframe and key column names. 2. The bias parameters:
-<em>U</em> model coefficients, <em>X</em> model coefficients, and
-<em>S</em> model coefficients.</p>
-<p>Using the results from the fitted bias models above, we’ll use Normal
-distribution draws for each bias parameter where the mean correponds to
-the estimated coefficient from the bias model and the standard deviation
-comes from the estimated standard deviation (i.e., standard error) of
-the coefficient in the bias model. Each loop iteration will thus have
-slightly different values for the bias parameters.</p>
-<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>or <span class="ot">&lt;-</span> <span class="fu">foreach</span>(<span class="at">i =</span> <span class="dv">1</span><span class="sc">:</span>nreps, <span class="at">.combine =</span> c,</span>
-<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>              <span class="at">.packages =</span> <span class="fu">c</span>(<span class="st">&quot;dplyr&quot;</span>, <span class="st">&quot;multibias&quot;</span>)) <span class="sc">%dopar%</span> {</span>
-<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a></span>
-<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  df_sample <span class="ot">&lt;-</span> df_uc_em_sel[<span class="fu">sample</span>(<span class="fu">seq_len</span>(<span class="fu">nrow</span>(df_uc_em_sel)),</span>
-<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                                   <span class="fu">nrow</span>(df_uc_em_sel),</span>
-<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                                   <span class="at">replace =</span> <span class="cn">TRUE</span>), ]</span>
-<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a></span>
-<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>  est[i] <span class="ot">&lt;-</span> <span class="fu">adjust_uc_em_sel</span>(</span>
-<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>    <span class="at">data_observed =</span> <span class="fu">data_observed</span>(</span>
-<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>      <span class="at">data =</span> df_sample,</span>
-<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>      <span class="at">exposure =</span> <span class="st">&quot;Xstar&quot;</span>,</span>
-<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>      <span class="at">outcome =</span> <span class="st">&quot;Y&quot;</span>,</span>
-<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>      <span class="at">confounders =</span> <span class="fu">c</span>(<span class="st">&quot;C1&quot;</span>, <span class="st">&quot;C2&quot;</span>, <span class="st">&quot;C3&quot;</span>)</span>
-<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>    ),</span>
-<span id="cb6-15"><a href="#cb6-15" tabindex="-1"></a>    <span class="at">u_model_coefs =</span> <span class="fu">c</span>(</span>
-<span id="cb6-16"><a href="#cb6-16" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-17"><a href="#cb6-17" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-18"><a href="#cb6-18" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>])</span>
-<span id="cb6-19"><a href="#cb6-19" tabindex="-1"></a>    ),</span>
-<span id="cb6-20"><a href="#cb6-20" tabindex="-1"></a>    <span class="at">x_model_coefs =</span> <span class="fu">c</span>(</span>
-<span id="cb6-21"><a href="#cb6-21" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-22"><a href="#cb6-22" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-23"><a href="#cb6-23" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-24"><a href="#cb6-24" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">4</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">4</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-25"><a href="#cb6-25" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">5</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">5</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-26"><a href="#cb6-26" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">6</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">6</span>, <span class="dv">2</span>])</span>
-<span id="cb6-27"><a href="#cb6-27" tabindex="-1"></a>    ),</span>
-<span id="cb6-28"><a href="#cb6-28" tabindex="-1"></a>    <span class="at">s_model_coefs =</span> <span class="fu">c</span>(</span>
-<span id="cb6-29"><a href="#cb6-29" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-30"><a href="#cb6-30" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-31"><a href="#cb6-31" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-32"><a href="#cb6-32" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">4</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">4</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-33"><a href="#cb6-33" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">5</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">5</span>, <span class="dv">2</span>]),</span>
-<span id="cb6-34"><a href="#cb6-34" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">6</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">6</span>, <span class="dv">2</span>])</span>
-<span id="cb6-35"><a href="#cb6-35" tabindex="-1"></a>    )</span>
-<span id="cb6-36"><a href="#cb6-36" tabindex="-1"></a>  )<span class="sc">$</span>estimate</span>
-<span id="cb6-37"><a href="#cb6-37" tabindex="-1"></a>}</span></code></pre></div>
-<p>Finally, we obtain the OR<sub>YX</sub> estimate and 95% confidence
-interval from the distribution of 1,000 odds ratio estimates. As
-expected, OR<sub>YX</sub> ~ 2, indicating that we were successfully able
-to obtain a bias-adjusted estimate in our biased data that approximates
-the known, unbiased estimate.</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="co"># odds ratio estimate</span></span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">median</span>(or), <span class="dv">2</span>)</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; 2.02</span></span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co"># confidence interval</span></span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="fu">round</span>(<span class="fu">quantile</span>(or, <span class="fu">c</span>(.<span class="dv">025</span>, .<span class="dv">975</span>)), <span class="dv">2</span>)</span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 1.93 2.11</span></span></code></pre></div>
+representing each bias parameter as a draw from a Normal distribution.
+This allows us to account for our uncertainty in the “true” value of the
+bias parameters. We will leverage bootstrap sampling, which is built
+into <code>multibias_adjust()</code> to obtain a confidence interval
+that incorporates both uncertainty from random error and uncertainty
+from systematic error (our bias parameters). Each loop iteration will
+thus have slightly different values for the bias parameters.</p>
+<p>We create our <code>bias_params</code> object, bringing in the model
+results we determined above.</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>bp <span class="ot">&lt;-</span> <span class="fu">bias_params</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">coef_list =</span> <span class="fu">list</span>(</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>    <span class="at">u =</span> <span class="fu">c</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> u_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(u_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>])</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>    ),</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>    <span class="at">x =</span> <span class="fu">c</span>(</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">4</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">4</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">5</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">5</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> x_model<span class="sc">$</span>coef[<span class="dv">6</span>], <span class="at">sd =</span> <span class="fu">summary</span>(x_model)<span class="sc">$</span>coef[<span class="dv">6</span>, <span class="dv">2</span>])</span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>    ),</span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>    <span class="at">s =</span> <span class="fu">c</span>(</span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">1</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">1</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">2</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">2</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">3</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">3</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">4</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">4</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">5</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">5</span>, <span class="dv">2</span>]),</span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a>      <span class="fu">rnorm</span>(<span class="dv">1</span>, <span class="at">mean =</span> s_model<span class="sc">$</span>coef[<span class="dv">6</span>], <span class="at">sd =</span> <span class="fu">summary</span>(s_model)<span class="sc">$</span>coef[<span class="dv">6</span>, <span class="dv">2</span>])</span>
+<span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a>    )</span>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>  )</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>)</span></code></pre></div>
+<p>The <code>data_observed</code> and <code>bias_params</code> objects
+are specified as inputs of <code>multibias</code>. In addition, we will
+indicate that we want results ran over bootstrap samples.</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a><span class="fu">multibias_adjust</span>(</span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="at">data_observed =</span> df_observed,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>  <span class="at">bias_params =</span> bp,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>  <span class="at">bootstrap =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>  <span class="at">bootstrap_reps =</span> <span class="dv">10</span>,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>  <span class="at">level =</span> <span class="fl">0.95</span></span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>)</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a><span class="co">#&gt; $estimate</span></span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a><span class="co">#&gt; [1] 2.023031</span></span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a><span class="co">#&gt; $ci</span></span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a><span class="co">#&gt; [1] 1.987670 2.074259</span></span></code></pre></div>
+<p>We arrive at an estimate of the effect of X on Y of approximately 2,
+correctly corresponding to the relationship that was built into the
+data. This showcases the power of multibias to allow researchers to
+arrive at valid causal effect estimates in the presence of missing or
+incomplete data.</p>
 
 
 

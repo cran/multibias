@@ -4,28 +4,36 @@ knitr::opts_chunk$set(
   comment = "#>"
 )
 
-## ----setup--------------------------------------------------------------------
+## ----setup, message = FALSE---------------------------------------------------
 library(multibias)
+library(dplyr)
 
 ## ----eval = TRUE--------------------------------------------------------------
 evans <- read.csv("evans.csv")
-head(evans)
+
+summary_stats <- evans %>%
+  summarise(
+    n = n(),
+    mean_age = mean(AGE),
+    sd_age = sd(AGE),
+    prop_smokers = mean(SMK),
+    prop_chd = mean(CHD),
+    prop_hpt = mean(HPT)
+  )
+
+print(summary_stats)
 
 ## ----eval = TRUE--------------------------------------------------------------
-biased_model <- glm(CHD ~ SMK + HPT,
-  family = binomial(link = "logit"),
-  data = evans
-)
-or <- round(exp(coef(biased_model)[2]), 2)
-or_ci_low <- round(
-  exp(coef(biased_model)[2] - 1.96 * summary(biased_model)$coef[2, 2]), 2
-)
-or_ci_high <- round(
-  exp(coef(biased_model)[2] + 1.96 * summary(biased_model)$coef[2, 2]), 2
+df_obs <- data_observed(
+  data = evans,
+  bias = "uc",
+  exposure = "SMK",
+  outcome = "CHD",
+  confounders = "HPT"
 )
 
-print(paste0("Biased Odds Ratio: ", or))
-print(paste0("95% CI: (", or_ci_low, ", ", or_ci_high, ")"))
+print(df_obs)
+summary(df_obs)
 
 ## -----------------------------------------------------------------------------
 cor(evans$SMK, evans$AGE)
@@ -40,18 +48,12 @@ u_c <- log(2)
 u_coefs <- list(u = c(u_0, u_x, u_y, u_c))
 
 ## ----eval = TRUE--------------------------------------------------------------
-df_obs <- data_observed(
-  data = evans,
-  bias = "uc",
-  exposure = "SMK",
-  outcome = "CHD",
-  confounders = "HPT"
-)
-
 set.seed(1234)
 multibias_adjust(
-  df_obs,
-  bias_params = bias_params(coef_list = u_coefs)
+  data_observed = df_obs,
+  bias_params = bias_params(coef_list = u_coefs),
+  bootstrap = TRUE,
+  bootstrap_reps = 100
 )
 
 ## ----eval = TRUE--------------------------------------------------------------
@@ -61,10 +63,10 @@ full_model <- glm(CHD ~ SMK + HPT + AGE,
 )
 or <- round(exp(coef(full_model)[2]), 2)
 or_ci_low <- round(
-  exp(coef(biased_model)[2] - 1.96 * summary(full_model)$coef[2, 2]), 2
+  exp(coef(full_model)[2] - 1.96 * summary(full_model)$coef[2, 2]), 2
 )
 or_ci_high <- round(
-  exp(coef(biased_model)[2] + 1.96 * summary(full_model)$coef[2, 2]), 2
+  exp(coef(full_model)[2] + 1.96 * summary(full_model)$coef[2, 2]), 2
 )
 
 print(paste0("Odds Ratio: ", or))

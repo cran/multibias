@@ -44,29 +44,10 @@ multibias_adjust(
 )
 
 ## -----------------------------------------------------------------------------
-n <- nrow(df_uc_sel)
-est <- vector()
-nreps <- 100
-
-for (i in 1:nreps) {
-  df_bootstrap <- df_uc_sel[sample(seq_len(n), n, replace = TRUE), ]
-  df_observed <- data_observed(
-    df_bootstrap,
-    bias = c("uc", "sel"),
-    exposure = "X",
-    outcome = "Y",
-    confounders = c("C1", "C2", "C3")
-  )
-  results <- multibias_adjust(
-    df_observed,
-    df_validation
-  )
-  est[i] <- results$estimate
-}
-
-# odds ratio estimate
-round(median(est), 2)
-
-# confidence interval
-round(quantile(est, c(.025, .975)), 2)
+multibias_adjust(
+  data_observed = df_observed,
+  data_validation = df_validation,
+  bootstrap = TRUE,
+  bootstrap_reps = 10
+)
 
