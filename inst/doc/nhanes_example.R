@@ -50,23 +50,6 @@ demographic_table <- nhanes_filtered |>
 print(demographic_table)
 
 ## -----------------------------------------------------------------------------
-base_mod <- glm(
-  mortstat ~ alcohol_extreme + gender_female + age,
-  data = nhanes_filtered,
-  family = binomial(link = "logit")
-)
-
-base_results <- data.frame(
-  term = c("Extreme Alcohol Use", "Female Gender", "Age"),
-  estimate = round(exp(coef(base_mod)), 2)[-1],
-  ci_lower = round(exp(confint(base_mod)), 2)[-1, 1],
-  ci_upper = round(exp(confint(base_mod)), 2)[-1, 2]
-)
-
-# Base Model Results: Odds Ratios and 95% Confidence Intervals
-print(base_results)
-
-## -----------------------------------------------------------------------------
 # Create observed data object with uncontrolled confounding bias
 df_obs1 <- data_observed(
   data = nhanes_filtered,
@@ -76,6 +59,9 @@ df_obs1 <- data_observed(
   confounders = c("age", "gender_female")
 )
 
+summary(df_obs1)
+
+## -----------------------------------------------------------------------------
 # Create validation data with smoking information
 df_temp1 <- nhanes_filtered |>
   filter(!is.na(smoked_100cigs))
@@ -89,7 +75,12 @@ df_val1 <- data_validation(
 
 # Perform bias adjustment
 set.seed(1234)
-uc_adjusted <- multibias_adjust(df_obs1, df_val1)
+uc_adjusted <- multibias_adjust(
+  df_obs1,
+  df_val1,
+  bootstrap = TRUE,
+  bootstrap_reps = 100
+)
 
 # Uncontrolled Confounding Adjusted Results:
 print(uc_adjusted)
@@ -131,7 +122,12 @@ df_val2 <- data_validation(
 
 # Perform bias adjustment
 set.seed(1234)
-uc_em_adjusted <- multibias_adjust(df_obs2, df_val2)
+uc_em_adjusted <- multibias_adjust(
+  df_obs2,
+  df_val2,
+  bootstrap = TRUE,
+  bootstrap_reps = 100
+)
 
 # Exposure Misclassification & Confounding Adjusted Results:
 print(uc_em_adjusted)
@@ -199,40 +195,24 @@ df_val3 <- data_validation(
 
 # Perform final bias adjustment
 set.seed(1234)
-final_adjusted <- multibias_adjust(df_obs3, df_val3)
+final_adjusted <- multibias_adjust(
+  df_obs3,
+  df_val3,
+  bootstrap = TRUE,
+  bootstrap_reps = 100
+)
 
 # Triple Bias Adjusted Results:
 print(final_adjusted)
 
 ## -----------------------------------------------------------------------------
-# Create comparison table
-comparison_table <- data.frame(
-  Model = c(
-    "Base Model",
-    "Adjusted - Single Bias",
-    "Adjusted - Double Biases",
-    "Adjusted - Triple Biases"
+multibias_plot(
+  df_obs1,
+  multibias_result_list = list(
+    "Adjusted - Single Bias" = uc_adjusted,
+    "Adjusted - Double Biases" = uc_em_adjusted,
+    "Adjusted - Triple Biases" = final_adjusted
   ),
-  OR = c(
-    round(exp(coef(base_mod))["alcohol_extreme"], 2),
-    round(uc_adjusted$estimate, 2),
-    round(uc_em_adjusted$estimate, 2),
-    round(final_adjusted$estimate, 2)
-  ),
-  CI_lower = c(
-    round(exp(confint(base_mod))["alcohol_extreme", 1], 2),
-    round(uc_adjusted$ci[1], 2),
-    round(uc_em_adjusted$ci[1], 2),
-    round(final_adjusted$ci[1], 2)
-  ),
-  CI_upper = c(
-    round(exp(confint(base_mod))["alcohol_extreme", 2], 2),
-    round(uc_adjusted$ci[2], 2),
-    round(uc_em_adjusted$ci[2], 2),
-    round(final_adjusted$ci[2], 2)
-  )
+  log_scale = TRUE
 )
-
-# Comparison of Bias-Adjusted Estimates:
-print(comparison_table)
 

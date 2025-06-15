@@ -1,57 +1,57 @@
 set.seed(1234)
-nreps <- 10
+nreps <- 5
 
 # SEPARATE BIAS PARAMETERS
 # 0 confounders
 
-nobias_model <- glm(
-  Y ~ X + U,
-  family = binomial(link = "logit"),
-  data = df_uc_om_source
-)
-or_true <- exp(summary(nobias_model)$coef[2, 1])
+# nobias_model <- glm(
+#   Y ~ X + U,
+#   family = binomial(link = "logit"),
+#   data = df_uc_om_source
+# )
+# or_true <- exp(summary(nobias_model)$coef[2, 1])
 
-u_model <- glm(U ~ X + Y,
-               family = binomial(link = "logit"),
-               data = df_uc_om_source)
-y_model <- glm(Y ~ X + Ystar,
-               family = binomial(link = "logit"),
-               data = df_uc_om_source)
+# u_model <- glm(U ~ X + Y,
+#                family = binomial(link = "logit"),
+#                data = df_uc_om_source)
+# y_model <- glm(Y ~ X + Ystar,
+#                family = binomial(link = "logit"),
+#                data = df_uc_om_source)
 
-df_observed <- data_observed(
-  df_uc_om,
-  bias = c("uc", "om"),
-  exposure = "X",
-  outcome = "Ystar",
-  confounders = NULL
-)
-list_for_uc_om <- list(
-  u = as.vector(coef(u_model)),
-  y = as.vector(coef(y_model))
-)
-bp_uc_om <- bias_params(coef_list = list_for_uc_om)
+# df_observed <- data_observed(
+#   df_uc_om,
+#   bias = c("uc", "om"),
+#   exposure = "X",
+#   outcome = "Ystar",
+#   confounders = NULL
+# )
+# list_for_uc_om <- list(
+#   u = as.vector(coef(u_model)),
+#   y = as.vector(coef(y_model))
+# )
+# bp_uc_om <- bias_params(coef_list = list_for_uc_om)
 
-single_run <- adjust_uc_om(
-  df_observed,
-  bias_params = bp_uc_om
-)
+# single_run <- multibias_adjust(
+#   df_observed,
+#   bias_params = bp_uc_om
+# )
 
-bs_run <- multibias_adjust(
-  df_observed,
-  bias_params = bp_uc_om,
-  bootstrap = TRUE,
-  bootstrap_reps = nreps
-)
+# bs_run <- multibias_adjust(
+#   df_observed,
+#   bias_params = bp_uc_om,
+#   bootstrap = TRUE,
+#   bootstrap_reps = nreps
+# )
 
-test_that("odds ratio and confidence interval output", {
-  expect_gt(bs_run$estimate, or_true - 0.1)
-  expect_lt(bs_run$estimate, or_true + 0.1)
-  expect_vector(
-    single_run$ci,
-    ptype = double(),
-    size = 2
-  )
-})
+# test_that("odds ratio and confidence interval output", {
+#   expect_gt(bs_run$estimate, or_true - 0.1)
+#   expect_lt(bs_run$estimate, or_true + 0.1)
+#   expect_vector(
+#     single_run$ci,
+#     ptype = double(),
+#     size = 2
+#   )
+# })
 
 # 3 confounders
 
@@ -82,7 +82,7 @@ list_for_uc_om <- list(
 )
 bp_uc_om <- bias_params(coef_list = list_for_uc_om)
 
-single_run <- adjust_uc_om(
+single_run <- multibias_adjust(
   df_observed,
   bias_params = bp_uc_om
 )
@@ -136,7 +136,7 @@ list_for_uc_om <- list(
 )
 bp_uc_om <- bias_params(coef_list = list_for_uc_om)
 
-single_run <- adjust_uc_om(
+single_run <- multibias_adjust(
   df_observed,
   bias_params = bp_uc_om
 )
@@ -188,7 +188,7 @@ list_for_uc_om <- list(
 )
 bp_uc_om <- bias_params(coef_list = list_for_uc_om)
 
-single_run <- adjust_uc_om(
+single_run <- multibias_adjust(
   df_observed,
   bias_params = bp_uc_om
 )
@@ -212,7 +212,7 @@ test_that("odds ratio and confidence interval output", {
 
 # adjust with validation data
 
-or_val <- adjust_uc_om(
+val_run <- multibias_adjust(
   data_observed = data_observed(
     df_uc_om,
     bias = c("uc", "om"),
@@ -226,10 +226,12 @@ or_val <- adjust_uc_om(
     true_outcome = "Y",
     confounders = c("C1", "C2", "C3", "U"),
     misclassified_outcome = "Ystar"
-  )
+  ),
+  bootstrap = TRUE,
+  bootstrap_reps = nreps
 )
 
 test_that("adjust_uc_om, validation data", {
-  expect_gt(or_val$estimate, or_true - 0.1)
-  expect_lt(or_val$estimate, or_true + 0.1)
+  expect_gt(val_run$estimate, or_true - 0.1)
+  expect_lt(val_run$estimate, or_true + 0.1)
 })

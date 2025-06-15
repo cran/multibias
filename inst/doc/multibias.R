@@ -15,6 +15,9 @@ df_observed <- data_observed(
 )
 
 ## -----------------------------------------------------------------------------
+summary(df_observed)
+
+## -----------------------------------------------------------------------------
 bp <- bias_params(
   coef_list = list(
     u = c(-0.19, 0.61, 0.72, -0.09, 0.10, -0.15),
@@ -44,10 +47,18 @@ multibias_adjust(
 )
 
 ## -----------------------------------------------------------------------------
-multibias_adjust(
+adjusted_results <- multibias_adjust(
   data_observed = df_observed,
   data_validation = df_validation,
   bootstrap = TRUE,
   bootstrap_reps = 10
+)
+adjusted_results
+
+## -----------------------------------------------------------------------------
+multibias_plot(
+  data_observed = df_observed,
+  multibias_result_list = list("Adjusted Estimate" = adjusted_results),
+  log_scale = TRUE
 )
 
